@@ -1,13 +1,51 @@
 getAllCustomers();
 
-//save btn action
-$("#c_btnSave").click(function () {
-    saveCustomer();
-    $("#o_inputCustId").empty();
-    loadCustIds();
-    getAllCustomers();
-    clearTxtFields();
-})
+//save btn action ------------------------------------------------------------------------------------------------------
+// $("#c_btnSave").click(function () {
+//     saveCustomer();
+//     $("#o_inputCustId").empty();
+//     loadCustIds();
+//     getAllCustomers();
+//     clearTxtFields();
+// })
+
+$("#c_btnSave").click(function() {
+    let id = $("#c_inputCustId").val();
+    let name = $("#c_inputCustName").val();
+    let address = $("#c_inputCustAddress").val();
+    let contact = $("#c_inputCustContact").val();
+
+    let custObj ={
+        id: id,
+        name: name,
+        address: address,
+        contact: contact
+    }
+
+    let jsonObj = JSON.stringify(custObj);
+    $.ajax({
+        url: "http://localhost:8080/postoee/customer",
+        method: "post",
+        contentType: "application/json",
+        data: jsonObj,
+        success: function (resp, textStatus, jqxhr) {
+            if(jqxhr.status==201){
+                alert("customer saved successfully");
+                clearTxtFields();
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            if(jqXHR.status==409){
+                alert("Duplicate values. Please check again");
+                return;
+            }else{
+                alert("Something happened. Customer not added");
+            }
+        }
+    });
+});
+
+
 
 //update btn action
 $("#c_btnUpdate").click(function () {
