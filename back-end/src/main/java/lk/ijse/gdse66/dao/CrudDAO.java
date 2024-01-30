@@ -6,11 +6,11 @@ public interface CrudDAO<T> extends SuperDAO {
 
     public int save(T entity);
 
-    public boolean update(T entity);
+    public int update(T entity);
 
     public ArrayList<T> getAll();
 
-    public boolean delete(String id);
+    public int delete(String id);
 
     public T findBy(String id);
 }

@@ -31,9 +31,9 @@ $("#c_inputCustId,#c_inputCustName,#c_inputCustAddress,#c_inputCustContact").on(
                 c_validationArray[indexNo + 1].field.focus();
             }
         } else {
-            if (checkValidations(c_validationArray[indexNo])) {
-                saveCustomer();
-            }
+            // if (checkValidations(c_validationArray[indexNo])) {
+            //     saveCustomer();
+            // }
         }
     }
 });
@@ -75,13 +75,14 @@ function setBtn() {
     }
 
     let id = $("#c_inputCustId").val();
-    if (findCustomer(id) == undefined) {
-        $("#c_btnDelete").prop("disabled", true);
-        // $("#c_btnUpdate").prop("disabled", true);
-    } else {
-        $("#c_btnDelete").prop("disabled", false);
-        // $("#c_btnUpdate").prop("disabled", false);
-    }
+    findCustomer(id, function (customerId) {
+        console.log(customerId);
+        if (customerId == null) {
+            $("#c_btnDelete").prop("disabled", true);
+        } else {
+            $("#c_btnDelete").prop("disabled", false);
+        }
+    });
 }
 
 function checkAll() {

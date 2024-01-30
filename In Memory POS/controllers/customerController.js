@@ -1,14 +1,6 @@
 getAllCustomers();
 
 //save btn action ------------------------------------------------------------------------------------------------------
-// $("#c_btnSave").click(function () {
-//     saveCustomer();
-//     $("#o_inputCustId").empty();
-//     loadCustIds();
-//     getAllCustomers();
-//     clearTxtFields();
-// })
-
 $("#c_btnSave").click(function() {
     let id = $("#c_inputCustId").val();
     let name = $("#c_inputCustName").val();
@@ -32,6 +24,7 @@ $("#c_btnSave").click(function() {
             if(jqxhr.status==201){
                 alert("customer saved successfully");
                 clearTxtFields();
+                getAllCustomers();
             }
         },
         error: function (jqXHR, textStatus, errorThrown) {
@@ -45,22 +38,48 @@ $("#c_btnSave").click(function() {
     });
 });
 
-
-
-//update btn action
+//update btn action-----------------------------------------------------------------------------------------------------
 $("#c_btnUpdate").click(function () {
-    let id = $("#c_inputCustId").val();
-    updateCustomer(id.trim());
-    getAllCustomers();
-    clearTxtFields();
+    let id = $("#c_inputCustId").val().trim();
+    let name = $("#c_inputCustName").val();
+    let address = $("#c_inputCustAddress").val();
+    let contact = $("#c_inputCustContact").val();
+
+    let custObj ={
+        id: id,
+        name: name,
+        address: address,
+        contact: contact
+    }
+
+    let jsonObj = JSON.stringify(custObj);
+    $.ajax({
+        url: "http://localhost:8080/postoee/customer",
+        method: "put",
+        contentType: "application/json",
+        data: jsonObj,
+        success: function (resp, textStatus, jqxhr) {
+            if(jqxhr.status==204){
+                alert("customer updated successfully");
+                clearTxtFields();
+                getAllCustomers();
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            if(jqXHR.status==409){
+                alert("Duplicate values. Please check again");
+                return;
+            }else{
+                alert("Something happened. Customer details not updated");
+            }
+        }
+    });
 })
 
-//delete btn action
+//delete btn action-----------------------------------------------------------------------------------------------------
 $("#c_btnDelete").click(function () {
-    let id = $("#c_inputCustId").val();
+    let id = $("#c_inputCustId").val().trim();
     deleteCustomer(id.trim());
-    getAllCustomers();
-    clearTxtFields();
 })
 
 //clear btn action
@@ -72,106 +91,129 @@ $("#c_btnClear").click(function () {
 $("#c_btnSearch").click(function () {
     let custId = $("#c_inpSearch").val();
 
-    let customer = findCustomer(custId.trim());
+    $.ajax({
+        url: "http://localhost:8080/postoee/customer?function=getById&id="+custId,
+        method: "get",
+        dataType: "json",
+        success: function (resp, textStatus, jqXHR){
+            console.log(resp);
 
-    if(customer == undefined){
-        alert(`no customer found with the ID: ${custId} . Please try again.`);
-        $("#c_inpSearch").val("");
-    }else{
-        setDataToTxtFields(customer.id,customer.name,customer.address,customer.contact);
-        $("#c_collapseOne").collapse("show");
-        $("#c_inpSearch").val("");
-    }
+            if(resp.id == undefined){
+                alert("No customer with the id " + custId);
+                $("#c_inpSearch").val("");
+                return;
+            }
+            setDataToTxtFields(resp.id, resp.name, resp.address, resp.contact);
+            $("#c_inpSearch").val("");
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+        }
+    });
 })
 
-function saveCustomer() {
-    let custId = $("#c_inputCustId").val();
+// function saveCustomer() {
+//     let custId = $("#c_inputCustId").val();
+//
+//     if(findCustomer(custId.trim()) == undefined ){
+//         let custName = $("#c_inputCustName").val();
+//         let custAddress = $("#c_inputCustAddress").val();
+//         let custContact = $("#c_inputCustContact").val();
+//
+//         let newCustomer = Object.assign({}, customer);
+//
+//         newCustomer.id = custId;
+//         newCustomer.name = custName;
+//         newCustomer.address = custAddress;
+//         newCustomer.contact = custContact;
+//
+//         customerDB.push(newCustomer);
+//     }else{
+//         alert(`customer with the ID: ${custId} already exists.`)
+//     }
+// }
 
-    if(findCustomer(custId.trim()) == undefined ){
-        let custName = $("#c_inputCustName").val();
-        let custAddress = $("#c_inputCustAddress").val();
-        let custContact = $("#c_inputCustContact").val();
-
-        let newCustomer = Object.assign({}, customer);
-
-        newCustomer.id = custId;
-        newCustomer.name = custName;
-        newCustomer.address = custAddress;
-        newCustomer.contact = custContact;
-
-        customerDB.push(newCustomer);
-    }else{
-        alert(`customer with the ID: ${custId} already exists.`)
-    }
-}
-
-function updateCustomer(id) {
-    let customer = findCustomer(id);
-
-    if(customer==undefined){
-        alert(`No customer with the ID: ${id} . Please check the ID again.`);
-    }else{
-        let result = confirm("Confirm customer details updating process?");
-        if(result){
-            let custName = $("#c_inputCustName").val();
-            let custAddress = $("#c_inputCustAddress").val();
-            let custContact = $("#c_inputCustContact").val();
-
-            customer.name = custName;
-            customer.address = custAddress;
-            customer.contact = custContact;
-        }
-    }
-}
+// function updateCustomer(id) {
+//     let customer = findCustomer(id);
+//
+//     if(customer==undefined){
+//         alert(`No customer with the ID: ${id} . Please check the ID again.`);
+//     }else{
+//         let result = confirm("Confirm customer details updating process?");
+//         if(result){
+//             let custName = $("#c_inputCustName").val();
+//             let custAddress = $("#c_inputCustAddress").val();
+//             let custContact = $("#c_inputCustContact").val();
+//
+//             customer.name = custName;
+//             customer.address = custAddress;
+//             customer.contact = custContact;
+//         }
+//     }
+// }
 
 function deleteCustomer(id) {
-    let customer = findCustomer(id);
+    $.ajax({
+        url: "http://localhost:8080/postoee/customer?id="+id,
+        method: "delete",
+        success: function (resp, textStatus, jqXHR){
+            console.log(resp);
 
-    if(customer==undefined){
-        alert(`No customer with the ID: ${id} . Please check the ID again.`);
-    }else{
-        let result = confirm("Are you sure you want to remove this customer?");
-        if(result){
-            let status = "pending"
-            for (let i = 0; i < customerDB.length; i++) {
-                if (customerDB[i].id == id) {
-                    customerDB.splice(i, 1);
-                    status = "done"
-                    alert("customer deleted successfully")
-                }
+            if(jqXHR.status==204){
+                alert("customer deleted successfully");
+                clearTxtFields();
+                getAllCustomers();
             }
-            if(status == "pending"){
-                alert("customer not removed")
-            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            alert("Something happened. Customer not removed");
         }
-    }
+    });
 }
 
-function findCustomer(id){
-    return customerDB.find(function (customer) {
-        return customer.id == id;
+function findCustomer(id, callback) {
+    $.ajax({
+        url: "http://localhost:8080/postoee/customer?function=getById&id="+id,
+        method: "get",
+        dataType: "json",
+        success: function (resp, textStatus, jqXHR){
+            callback(resp.id);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+            callback(null);
+        }
     });
 }
 
 function getAllCustomers() {
     $("#c_tBody").empty();
 
-    for (let i = 0; i < customerDB.length; i++) {
-        let id = customerDB[i].id;
-        let name = customerDB[i].name;
-        let address = customerDB[i].address;
-        let salary = customerDB[i].contact;
+    $.ajax({
+        url: "http://localhost:8080/postoee/customer?function=getAll",
+        method: "get",
+        dataType: "json",
+        success: function (resp, textStatus, jqxhr) {
+            console.log(resp);
 
-        let row = `<tr>
-                   <td>${id}</td>
-                   <td>${name}</td>
-                   <td>${address}</td>
-                   <td>${salary}</td>
-                   </tr>`;
+            $.each(resp, function(index, customer) {
+                let row = `
+                    <tr>
+                        <td>${customer.id}</td>
+                        <td>${customer.name}</td>
+                        <td>${customer.address}</td>
+                        <td>${customer.contact}</td>
+                    </tr>
+                `
 
-        $("#c_tBody").append(row);
-    }
-    onTblRowClick()
+                $("#c_tBody").append(row);
+            });
+            onTblRowClick();
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(errorThrown);
+        }
+    });
 }
 
 function onTblRowClick() {
@@ -195,6 +237,7 @@ function onTblRowClick() {
                     let address = row.children().eq(2).text();
                     let contact = row.children().eq(3).text();
                     setDataToTxtFields(id, name, address, contact);
+                    $("#c_btnDelete").prop("disabled", false);
                     $("#c_collapseOne").collapse("show");
                     $("#c_collapseOne")[0].scrollIntoView({ behavior: "smooth", block: "center" });
                 }, 300); // Adjust the delay (300 milliseconds) as needed
@@ -204,6 +247,7 @@ function onTblRowClick() {
 }
 
 function setDataToTxtFields(id,name,address,contact){
+    $("#c_collapseOne").collapse("show");
     $("#c_inputCustId").val(id);
     $("#c_inputCustName").val(name);
     $("#c_inputCustAddress").val(address);
@@ -211,6 +255,7 @@ function setDataToTxtFields(id,name,address,contact){
 
     $("#c_inputCustId,#c_inputCustName,#c_inputCustAddress,#c_inputCustContact").addClass("border-secondary-subtle");
     setBtn();
+    $("#c_btnDelete").prop("disabled", false);
 }
 
 function clearTxtFields(){
