@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @ToString
-public class OrderDetails {
+public class OrderDetail {
 
     private String order_id;
     private String item_code;

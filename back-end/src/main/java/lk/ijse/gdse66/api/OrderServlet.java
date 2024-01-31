@@ -6,6 +6,7 @@ import jakarta.json.bind.JsonbException;
 import lk.ijse.gdse66.bo.BOFactory;
 import lk.ijse.gdse66.bo.custom.OrderBO;
 import lk.ijse.gdse66.dto.ItemDTO;
+import lk.ijse.gdse66.dto.OrderDTO;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -18,6 +19,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 
 @WebServlet(name = "orders", urlPatterns = "/order")
@@ -49,6 +51,47 @@ public class OrderServlet extends HttpServlet {
                 e.printStackTrace();
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
             }
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try (Connection connection = connectionPool.getConnection()){
+
+            Jsonb jsonb = JsonbBuilder.create();
+
+            OrderDTO orderDTO = jsonb.fromJson(req.getReader(), OrderDTO.class);
+            System.out.println(orderDTO);
+
+            if(orderDTO.getOrder_id()==null || !orderDTO.getOrder_id().matches("^(ORD-)[0-9]{3}$")){
+                resp.getWriter().write("order id is empty or invalid");
+                return;
+            }else if(orderDTO.getDate()==null || !orderDTO.getDate().toString().matches("\\d{4}-\\d{2}-\\d{2}")){
+                resp.getWriter().write("date is empty or invalid");
+                return;
+            }else if(orderDTO.getCust_id()==null || !orderDTO.getCust_id().matches("^(C00-)[0-9]{3}$")){
+                resp.getWriter().write("customer id is empty or invalid");
+                return;
+            }else if(orderDTO.getDiscount()==null || !orderDTO.getDiscount().toString().matches("\\d+(\\.\\d+)?")){
+                resp.getWriter().write("discount is empty or invalid");
+                return;
+            }else if(orderDTO.getTotal()==null || !orderDTO.getTotal().toString().matches("\\d+(\\.\\d+)?")){
+                resp.getWriter().write("total is empty or invalid");
+                return;
+            }else if(orderDTO.getOrder_list().size()==0){
+                resp.getWriter().write("order details list is empty");
+                return;
+            }
+
+            boolean isTransactionDone = orderBO.placeOrder(connection, orderDTO);
+            if(isTransactionDone){
+                resp.setStatus(HttpServletResponse.SC_CREATED);
+            }else{
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "failed transaction");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "transaction failed");
         }
     }
 }

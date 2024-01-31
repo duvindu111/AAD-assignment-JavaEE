@@ -181,49 +181,57 @@ $("#o_btnPurchase").click(function (){
                 if($("#o_inputCash").val()==""){
                     alert("input cash amount before purchasing")
                 }else{
-                    // $("#o_tBody tr").each(function() {
-                    //     let orderDetail = {
-                    //         itmCode: $(this).children().eq(0).text(),
-                    //         unitPrice: $(this).children().eq(2).text(),
-                    //         qty: $(this).children().eq(3).text()
-                    //     }
-                    //     orderDetails.push(orderDetail);
-                    //
-                    //     //reduce item quantity from the itemDB array
-                    //     let item = o_findItem(orderDetail.itmCode);
-                    //     let newQtyLeft = item.qty - orderDetail.qty;
-                    //     item.qty= newQtyLeft;
-                    // });
-                    //
-                    // let newOrder = Object.assign({}, order);
-                    //
-                    // newOrder.oid = orderId;
-                    // newOrder.orderDate = orderDate;
-                    // newOrder.custID = custId;
-                    // newOrder.discount = discount;
-                    // newOrder.finalPrice = finalPrice;
-                    // newOrder.orderDetails = orderDetails;
-                    //
-                    // orderDB.push(newOrder);
 
-                    alert("Order Placed Successfully")
+                    $("#o_tBody tr").each(function() {
+                        let orderDetail = {
+                            order_id: orderId,
+                            item_code: $(this).children().eq(0).text(),
+                            unit_price: $(this).children().eq(2).text(),
+                            qty: $(this).children().eq(3).text()
+                        }
+                        orderDetails.push(orderDetail);
+                    });
 
-                    let nextOrderId = generateNextOrderID();
-                    $("#o_inputOrderId").val(nextOrderId);
+                    let orderObj = {
+                        order_id: orderId,
+                        date: orderDate,
+                        cust_id: custId,
+                        discount: discount,
+                        total: finalPrice,
+                        order_list: orderDetails
+                    }
 
-                    let currentDate = new Date();
-                    var formattedDate = currentDate.toISOString().split('T')[0];
-                    $("#o_inputOrderDate").val(formattedDate);
+                    let jsonObj = JSON.stringify(orderObj);
+                    $.ajax({
+                        url: "http://localhost:8080/postoee/order",
+                        method: "post",
+                        contentType: "application/json",
+                        data: jsonObj,
+                        success: function (resp, textStatus, jqxhr) {
+                            alert("Order placed successfully");
 
-                    document.getElementById("o_inputCustId").selectedIndex= -1;
-                    document.getElementById("o_inputItmCode").selectedIndex= -1;
-                    $("#o_inputOrdQty").val(0);
-                    $("#o_inputDiscount").val(0);
-                    $("#o_tBody").empty();
-                    $("#o_lblCustName,#o_lblCustContact,#o_lblItmName,#o_lblItmUnitPrice,#o_lblItmQtyLeft,#o_lblTotal,#o_lblSubTotal").text("");
-                    $("#o_inputCash,#o_inputBalance").val("");
-                    finalTotal=0;
-                    subTotal=0;
+                            let nextOrderId = generateNextOrderID();
+                            $("#o_inputOrderId").val(nextOrderId);
+
+                            let currentDate = new Date();
+                            var formattedDate = currentDate.toISOString().split('T')[0];
+                            $("#o_inputOrderDate").val(formattedDate);
+
+                            document.getElementById("o_inputCustId").selectedIndex= -1;
+                            document.getElementById("o_inputItmCode").selectedIndex= -1;
+                            $("#o_inputOrdQty").val(0);
+                            $("#o_inputDiscount").val(0);
+                            $("#o_tBody").empty();
+                            $("#o_lblCustName,#o_lblCustContact,#o_lblItmName,#o_lblItmUnitPrice,#o_lblItmQtyLeft,#o_lblTotal,#o_lblSubTotal").text("");
+                            $("#o_inputCash,#o_inputBalance").val("");
+                            finalTotal=0;
+                            subTotal=0;
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR);
+                            alert("Something went wrong. Order not placed")
+                        }
+                    });
                 }
             }else {
                 alert("discount must be between 0 and 100");

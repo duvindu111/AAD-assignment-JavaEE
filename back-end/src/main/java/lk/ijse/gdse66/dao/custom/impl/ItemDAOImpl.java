@@ -62,4 +62,10 @@ public class ItemDAOImpl implements ItemDAO {
         }
         return item;
     }
+
+    @Override
+    public boolean reduceQty(Connection connection, Item item) throws SQLException {
+        String sql = "UPDATE item SET qty = ( qty - ? ) WHERE code = ?";
+        return CrudUtil.execute(connection, sql, item.getQty(), item.getCode());
+    }
 }

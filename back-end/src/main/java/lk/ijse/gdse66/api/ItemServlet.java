@@ -87,7 +87,7 @@ public class ItemServlet extends HttpServlet {
             if(itemDTO.getCode()==null || !itemDTO.getCode().matches("^(I00-)[0-9]{3}$")){
                 resp.getWriter().write("item code is empty or invalid");
                 return;
-            }else if(itemDTO.getName()==null || !itemDTO.getName().matches("^[A-Za-z ]{4,}$")){
+            }else if(itemDTO.getName()==null || !itemDTO.getName().matches("^.{3,}$")){
                 resp.getWriter().write("name is empty or invalid");
                 return;
             }else if(itemDTO.getPrice()==null || !itemDTO.getPrice().toString().matches("\\d+(\\.\\d{1,2})")){

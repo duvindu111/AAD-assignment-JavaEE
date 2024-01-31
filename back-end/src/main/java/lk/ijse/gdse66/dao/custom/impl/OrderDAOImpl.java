@@ -2,6 +2,7 @@ package lk.ijse.gdse66.dao.custom.impl;
 
 import lk.ijse.gdse66.dao.custom.OrderDAO;
 import lk.ijse.gdse66.dao.util.CrudUtil;
+import lk.ijse.gdse66.entity.Order;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -10,12 +11,13 @@ import java.util.ArrayList;
 
 public class OrderDAOImpl implements OrderDAO {
     @Override
-    public boolean save(Connection connection, Object entity) throws SQLException {
-        return false;
+    public boolean save(Connection connection, Order entity) throws SQLException {
+        String sql = "INSERT INTO orders (order_id, date, cust_id, discount, total) VALUES( ?, ?, ?, ?, ? )";
+        return CrudUtil.execute(connection, sql, entity.getOrder_id(), entity.getDate(), entity.getCust_id(), entity.getDiscount(), entity.getTotal());
     }
 
     @Override
-    public boolean update(Connection connection, Object entity) throws SQLException {
+    public boolean update(Connection connection, Order entity) throws SQLException {
         return false;
     }
 
@@ -30,7 +32,7 @@ public class OrderDAOImpl implements OrderDAO {
     }
 
     @Override
-    public Object findBy(Connection connection, String id) throws SQLException {
+    public Order findBy(Connection connection, String id) throws SQLException {
         return null;
     }
 
