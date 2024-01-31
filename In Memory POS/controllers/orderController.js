@@ -13,31 +13,64 @@ $(document).ready(function () {
     loadCustIds();
 });
 
-/*$("#o_inputCustId").click(function (){
-    $("#o_inputCustId").empty();
-    loadCustIds();
-});
+function generateNextOrderID() {
+    $.ajax({
+        url: "http://localhost:8080/postoee/order?function=getLastId",
+        method: "get",
+        success: function (resp, textStatus, jqxhr) {
+            console.log(resp);
 
-$("#o_inputItmCode").click(function (){
-    $("#o_inputItmCode").empty();
-    loadItemCodes();
-});*/
+            if(resp == "no_ids"){
+                $("#o_inputOrderId").val("ORD-001");
+            }else{
+                let lastId = resp;
+                splitOrderId(lastId);
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log("error - generateNextOrderId");
+            console.log(jqXHR);
+        }
+    });
+}
+
+function splitOrderId(lastId) {
+    let strings = lastId.split("ORD-");
+    let id = parseInt(strings[1]);
+    ++id;
+    let digit = String(id).padStart(3, '0');
+    $("#o_inputOrderId").val("ORD-" + digit);;
+}
 
 $("#o_inputCustId").on("change",function (){
     let selectedOption = $(this).val();
 
-    let customer = o_findCustomer(selectedOption);
-    $("#o_lblCustName").text(customer.name);
-    $("#o_lblCustContact").text(customer.contact);
+    $.ajax({
+        url: "http://localhost:8080/postoee/customer?function=getById&id="+selectedOption,
+        method: "get",
+        dataType: "json",
+        success: function (resp, textStatus, jqXHR){
+            console.log(resp);
+
+            $("#o_lblCustName").text(resp.name);
+            $("#o_lblCustContact").text(resp.contact);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+        }
+    });
 });
 
 $("#o_inputItmCode").on("change",function (){
     let selectedOption = $(this).val();
 
-    let item = o_findItem(selectedOption);
-    $("#o_lblItmName").text(item.name);
-    $("#o_lblItmUnitPrice").text(item.unitPrice);
-    $("#o_lblItmQtyLeft").text(item.qty);
+    o_findItem(selectedOption, function (resp){
+        $("#o_lblItmName").text(resp.name);
+
+        approximatedNumber = resp.price.toFixed(2);
+        $("#o_lblItmUnitPrice").text(approximatedNumber);
+        $("#o_lblItmQtyLeft").text(resp.qty);
+    })
 });
 
 let finalTotal;
@@ -89,10 +122,9 @@ $("#btnAddToCart").click(function (){
                     <td>${total}</td>
                </tr>`;
 
-                   $("#o_tBody").append(row);
-                   orderTblRowClicked();
+               $("#o_tBody").append(row);
+               orderTblRowClicked();
                }
-
            }else{
                alert("Order quantity required");
            }
@@ -149,30 +181,30 @@ $("#o_btnPurchase").click(function (){
                 if($("#o_inputCash").val()==""){
                     alert("input cash amount before purchasing")
                 }else{
-                    $("#o_tBody tr").each(function() {
-                        let orderDetail = {
-                            itmCode: $(this).children().eq(0).text(),
-                            unitPrice: $(this).children().eq(2).text(),
-                            qty: $(this).children().eq(3).text()
-                        }
-                        orderDetails.push(orderDetail);
-
-                        //reduce item quantity from the itemDB array
-                        let item = o_findItem(orderDetail.itmCode);
-                        let newQtyLeft = item.qty - orderDetail.qty;
-                        item.qty= newQtyLeft;
-                    });
-
-                    let newOrder = Object.assign({}, order);
-
-                    newOrder.oid = orderId;
-                    newOrder.orderDate = orderDate;
-                    newOrder.custID = custId;
-                    newOrder.discount = discount;
-                    newOrder.finalPrice = finalPrice;
-                    newOrder.orderDetails = orderDetails;
-
-                    orderDB.push(newOrder);
+                    // $("#o_tBody tr").each(function() {
+                    //     let orderDetail = {
+                    //         itmCode: $(this).children().eq(0).text(),
+                    //         unitPrice: $(this).children().eq(2).text(),
+                    //         qty: $(this).children().eq(3).text()
+                    //     }
+                    //     orderDetails.push(orderDetail);
+                    //
+                    //     //reduce item quantity from the itemDB array
+                    //     let item = o_findItem(orderDetail.itmCode);
+                    //     let newQtyLeft = item.qty - orderDetail.qty;
+                    //     item.qty= newQtyLeft;
+                    // });
+                    //
+                    // let newOrder = Object.assign({}, order);
+                    //
+                    // newOrder.oid = orderId;
+                    // newOrder.orderDate = orderDate;
+                    // newOrder.custID = custId;
+                    // newOrder.discount = discount;
+                    // newOrder.finalPrice = finalPrice;
+                    // newOrder.orderDetails = orderDetails;
+                    //
+                    // orderDB.push(newOrder);
 
                     alert("Order Placed Successfully")
 
@@ -254,42 +286,59 @@ function orderTblRowClicked(){
     });
 }
 
-function generateNextOrderID() {
-    const highestOrderID = orderDB.reduce((max, order) => {
-        const orderNumber = parseInt(order.oid.split('-')[1]);
-        return orderNumber > max ? orderNumber : max;
-    }, 0);
-
-    const nextOrderNumber = highestOrderID + 1;
-    return `OID-${String(nextOrderNumber).padStart(3, '0')}`;
-}
 
 function loadCustIds(){
-    for (let i = 0; i < customerDB.length; i++) {
-        let custId = customerDB[i].id;
+    $.ajax({
+        url: "http://localhost:8080/postoee/customer?function=getAll",
+        method: "get",
+        dataType: "json",
+        success: function (resp, textStatus, jqxhr) {
+            console.log(resp);
 
-        $("#o_inputCustId").append(`<option>${custId}</option>`)
-    }
-    document.getElementById("o_inputCustId").selectedIndex= -1;
-}
-
-function loadItemCodes(){
-    for (let i = 0; i < itemDB.length; i++) {
-        let itemCode = itemDB[i].code;
-
-        $("#o_inputItmCode").append(`<option>${itemCode}</option>`)
-    }
-    document.getElementById("o_inputItmCode").selectedIndex= -1;
-}
-
-function o_findCustomer(id){
-    return customerDB.find(function (customer) {
-        return customer.id == id;
+            $.each(resp, function(index, customer) {
+                let option = `<option>${customer.id}</option>`
+                $("#o_inputCustId").append(option);
+            });
+            document.getElementById("o_inputCustId").selectedIndex= -1;
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log("error - loadCustIds");
+            console.log(jqXHR);
+        }
     });
 }
 
-function o_findItem(id){
-    return itemDB.find(function (item) {
-        return item.code == id;
+function loadItemCodes(){
+    $.ajax({
+        url: "http://localhost:8080/postoee/item?function=getAll",
+        method: "get",
+        dataType: "json",
+        success: function (resp, textStatus, jqxhr) {
+
+            $.each(resp, function(index, item) {
+                let option = `<option>${item.code}</option>`
+                $("#o_inputItmCode").append(option);
+            });
+            document.getElementById("o_inputItmCode").selectedIndex= -1;
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(errorThrown);
+        }
+    });
+}
+
+function o_findItem(id, callback){
+    $.ajax({
+        url: "http://localhost:8080/postoee/item?function=getById&id="+id,
+        method: "get",
+        dataType: "json",
+        success: function (resp, textStatus, jqXHR){
+            console.log(resp);
+
+            callback(resp);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+        }
     });
 }
