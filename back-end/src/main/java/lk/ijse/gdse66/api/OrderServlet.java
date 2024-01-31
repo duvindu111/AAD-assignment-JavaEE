@@ -51,6 +51,21 @@ public class OrderServlet extends HttpServlet {
                 e.printStackTrace();
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
             }
+        }else if(function.equals("getById")){
+            String id = req.getParameter("id");
+            try (Connection connection = connectionPool.getConnection()){
+                OrderDTO orderDTO = orderBO.getOrderById(connection, id);
+
+                Jsonb jsonb = JsonbBuilder.create();
+                String json = jsonb.toJson(orderDTO);
+                resp.getWriter().write(json);
+            } catch (JsonbException e) {
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            } catch (IOException e) {
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            } catch (SQLException e) {
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            }
         }
     }
 

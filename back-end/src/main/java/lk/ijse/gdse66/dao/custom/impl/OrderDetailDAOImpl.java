@@ -5,10 +5,12 @@ import lk.ijse.gdse66.dao.util.CrudUtil;
 import lk.ijse.gdse66.entity.OrderDetail;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
-public class OrderDetailsDAOImpl implements OrderDetailsDAO {
+public class OrderDetailDAOImpl implements OrderDetailsDAO {
     @Override
     public boolean save(Connection connection, OrderDetail entity) throws SQLException {
         String sql = "INSERT INTO order_details (order_id, item_code, unit_price, qty) VALUES(?,?,?,?)";
@@ -33,5 +35,22 @@ public class OrderDetailsDAOImpl implements OrderDetailsDAO {
     @Override
     public OrderDetail findBy(Connection connection, String id) throws SQLException {
         return null;
+    }
+
+    @Override
+    public List<OrderDetail> getAllById(Connection connection, String id) throws SQLException {
+        String sql = "SELECT * FROM order_details WHERE order_id = ?";
+        ResultSet rs = CrudUtil.execute(connection, sql, id);
+
+        List<OrderDetail> orderDetailList = new ArrayList<OrderDetail>();
+        while( rs.next() ) {
+            OrderDetail orderDetail = new OrderDetail(
+                    rs.getString(3),
+                    rs.getBigDecimal(4),
+                    rs.getInt(5)
+            );
+            orderDetailList.add(orderDetail);
+        }
+        return orderDetailList;
     }
 }

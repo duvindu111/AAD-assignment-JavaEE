@@ -5,6 +5,7 @@ import lk.ijse.gdse66.dao.DAOFactory;
 import lk.ijse.gdse66.dao.custom.ItemDAO;
 import lk.ijse.gdse66.dao.custom.OrderDAO;
 import lk.ijse.gdse66.dao.custom.OrderDetailsDAO;
+import lk.ijse.gdse66.dto.ItemDTO;
 import lk.ijse.gdse66.dto.OrderDTO;
 import lk.ijse.gdse66.dto.OrderDetailsDTO;
 import lk.ijse.gdse66.entity.Item;
@@ -48,6 +49,19 @@ public class OrderBOImpl implements OrderBO {
             connection.rollback();
             return false;
         }
+    }
+
+    @Override
+    public OrderDTO getOrderById(Connection connection, String id) throws SQLException {
+        Order order = orderDAO.findBy(connection, id);
+
+        return new OrderDTO(
+                order.getOrder_id(),
+                order.getDate(),
+                order.getCust_id(),
+                order.getDiscount(),
+                order.getTotal()
+        );
     }
 
     private boolean updateItemQty(Connection connection, List<OrderDetailsDTO> order_list) throws SQLException {

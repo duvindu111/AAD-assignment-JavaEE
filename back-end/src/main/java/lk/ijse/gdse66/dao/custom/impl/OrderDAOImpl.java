@@ -33,7 +33,18 @@ public class OrderDAOImpl implements OrderDAO {
 
     @Override
     public Order findBy(Connection connection, String id) throws SQLException {
-        return null;
+        String sql = "SELECT * FROM orders WHERE order_id = ?";
+        ResultSet rs = CrudUtil.execute(connection, sql, id);
+
+        Order order = new Order();
+        if (rs.next()) {
+            order.setOrder_id(rs.getString("order_id"));
+            order.setDate(rs.getDate("date").toLocalDate());
+            order.setCust_id(rs.getString("cust_id"));
+            order.setDiscount(rs.getBigDecimal("discount"));
+            order.setTotal(rs.getBigDecimal("total"));
+        }
+        return order;
     }
 
     @Override

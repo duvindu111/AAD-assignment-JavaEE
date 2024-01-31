@@ -19,4 +19,12 @@ public class OrderDTO {
     BigDecimal discount;
     BigDecimal total;
     List<OrderDetailsDTO> order_list;
+
+    public OrderDTO(String order_id, LocalDate date, String cust_id, BigDecimal discount, BigDecimal total) {
+        this.order_id = order_id;
+        this.date = date;
+        this.cust_id = cust_id;
+        this.discount = discount;
+        this.total = total;
+    }
 }
