@@ -1,139 +1,188 @@
 getAllItems();
 
-//save btn action
-$("#i_btnSave").click(function () {
-    saveItem();
-    $("#o_inputItmCode").empty();
-    loadItemCodes();
-    getAllItems();
-    clearItemTxtFields();
-})
+//save btn action-------------------------------------------------------------------------------------------------------
+$("#i_btnSave").click(function() {
+    let code = $("#inputItemCode").val();
+    let name = $("#inputItemName").val();
+    let price = $("#inputItemUnitPrice").val();
+    let qty = $("#inputItemQtyOnHand").val();
 
-//update btn action
+    let itemObj ={
+        code: code,
+        name: name,
+        price: price,
+        qty: qty
+    }
+
+    let jsonObj = JSON.stringify(itemObj);
+    $.ajax({
+        url: "http://localhost:8080/postoee/item",
+        method: "post",
+        contentType: "application/json",
+        data: jsonObj,
+        success: function (resp, textStatus, jqxhr) {
+            if(jqxhr.status==201){
+                alert("item added successfully");
+                clearItemTxtFields();
+                getAllItems();
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            if(jqXHR.status==409){
+                alert("Duplicate values. Please check again");
+                return;
+            }else{
+                alert("Something happened. Item not added");
+            }
+        }
+    });
+});
+
+//update btn action-----------------------------------------------------------------------------------------------------
 $("#i_btnUpdate").click(function () {
-    let id = $("#inputItemCode").val();
-    updateItem(id.trim());
-    getAllItems();
-    clearItemTxtFields();
+    let code = $("#inputItemCode").val();
+    let name = $("#inputItemName").val();
+    let price = $("#inputItemUnitPrice").val();
+    let qty = $("#inputItemQtyOnHand").val();
+
+    let itemObj ={
+        code: code,
+        name: name,
+        price: price,
+        qty: qty
+    }
+
+    let jsonObj = JSON.stringify(itemObj);
+    $.ajax({
+        url: "http://localhost:8080/postoee/item",
+        method: "put",
+        contentType: "application/json",
+        data: jsonObj,
+        success: function (resp, textStatus, jqxhr) {
+            if(jqxhr.status==204){
+                alert("item updated successfully");
+                clearItemTxtFields();
+                getAllItems();
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            if(jqXHR.status==409){
+                alert("Duplicate values. Please check again");
+                return;
+            }else{
+                alert("Something happened. Item details not updated");
+            }
+        }
+    });
 })
 
-//delete btn action
+
+//delete btn action-----------------------------------------------------------------------------------------------------
 $("#i_btnDelete").click(function () {
     let id = $("#inputItemCode").val();
     deleteItem(id.trim());
-    getAllItems();
-    clearItemTxtFields();
 })
 
-//clear btn action
+//clear btn action------------------------------------------------------------------------------------------------------
 $("#i_btnClear").click(function () {
     clearItemTxtFields();
 })
 
-//search btn action
+//search btn action-----------------------------------------------------------------------------------------------------
 $("#i_btnSearch").click(function () {
-    let itmId = $("#i_inpSearch").val();
+    let itemId = $("#i_inpSearch").val().trim();
 
-    let item = findItem(itmId.trim());
+    $.ajax({
+        url: "http://localhost:8080/postoee/item?function=getById&id="+itemId,
+        method: "get",
+        dataType: "json",
+        success: function (resp, textStatus, jqXHR){
+            console.log(resp);
 
-    if(item == undefined){
-        alert(`no item found with the code: ${itmId} . Please try again.`);
-        $("#i_inpSearch").val("");
-    }else{
-        setDataToItemTxtFields(item.code,item.name,item.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),item.qty);
-        $("#i_collapseOne").collapse("show");
-        $("#i_inpSearch").val("");
-    }
+            if(resp.code == undefined){
+                alert("No item with the id: " + itemId);
+                $("#i_inpSearch").val("");
+                return;
+            }
+            approximatedNumber = resp.price.toFixed(2);
+            setDataToItemTxtFields(resp.code, resp.name, approximatedNumber, resp.qty);
+            $("#i_inpSearch").val("");
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+        }
+    });
 })
 
-function saveItem() {
-    let itmCode = $("#inputItemCode").val();
-
-    if(findItem(itmCode.trim()) == undefined ){
-        let itmName = $("#inputItemName").val();
-        let itmUnitPrice = $("#inputItemUnitPrice").val();
-        let itmQty = $("#inputItemQtyOnHand").val();
-
-        let newItem = Object.assign({}, item);
-
-        newItem.code = itmCode;
-        newItem.name = itmName;
-        newItem.unitPrice = itmUnitPrice;
-        newItem.qty = itmQty;
-
-        itemDB.push(newItem);
-    }else{
-        alert(`item with the code: ${itmCode} already exists.`);
-    }
-}
-
-function updateItem(id) {
-    let item = findItem(id);
-
-    if(item==undefined){
-        alert(`No item with the code: ${id} . Please check the code again.`);
-    }else{
-        let result = confirm("Confirm item details updating process?");
-        if(result){
-            let itmName = $("#inputItemName").val();
-            let itmUnitPrice = $("#inputItemUnitPrice").val();
-            let itmQty = $("#inputItemQtyOnHand").val();
-
-            item.name = itmName;
-            item.unitPrice = itmUnitPrice;
-            item.qty = itmQty;
-        }
-    }
-}
-
 function deleteItem(id) {
-    let item = findItem(id);
+    let item = findItem(id, function (itemId) {
+        console.log(itemId);
+        if (itemId == undefined) {
+            alert("No item with the id: " + id + " found");
+        } else {
+            $.ajax({
+                url: "http://localhost:8080/postoee/item?id="+id,
+                method: "delete",
+                success: function (resp, textStatus, jqXHR){
+                    console.log(resp);
 
-    if(item==undefined){
-        alert(`No item with the code: ${id} . Please check the code again.`);
-    }else{
-        let result = confirm("Are you sure you want to remove this item?");
-        if(result){
-            let status = "pending"
-            for (let i = 0; i < itemDB.length; i++) {
-                if (itemDB[i].code == id) {
-                    itemDB.splice(i, 1);
-                    status = "done"
-                    alert("item deleted successfully")
+                    if(jqXHR.status==204){
+                        alert("item deleted successfully");
+                        clearItemTxtFields();
+                        getAllItems();
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert("Something happened. item not removed");
                 }
-            }
-            if(status == "pending"){
-                alert("item not removed")
-            }
+            });
         }
-    }
+    });
 }
 
-function findItem(id){
-    return itemDB.find(function (item) {
-        return item.code == id;
+function findItem(id, callback) {
+    $.ajax({
+        url: "http://localhost:8080/postoee/item?function=getById&id="+id,
+        method: "get",
+        dataType: "json",
+        success: function (resp, textStatus, jqXHR){
+            callback(resp.code);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+            callback(null);
+        }
     });
 }
 
 function getAllItems() {
     $("#i_tBody").empty();
 
-    for (let i = 0; i < itemDB.length; i++) {
-        let code = itemDB[i].code;
-        let name = itemDB[i].name;
-        let unitPrice = itemDB[i].unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        let qty = itemDB[i].qty;
+    $.ajax({
+        url: "http://localhost:8080/postoee/item?function=getAll",
+        method: "get",
+        dataType: "json",
+        success: function (resp, textStatus, jqxhr) {
+            console.log(resp);
 
-        let row = `<tr>
-                   <td>${code}</td>
-                   <td>${name}</td>
-                   <td>${unitPrice}</td>
-                   <td>${qty}</td>
-                   </tr>`;
-
-        $("#i_tBody").append(row);
-    }
-    onTblItemRowClick()
+            $.each(resp, function(index, item) {
+                approximatedNumber = item.price.toFixed(2);
+                let row = `
+                    <tr>
+                        <td>${item.code}</td>
+                        <td>${item.name}</td>
+                        <td>${approximatedNumber}</td>
+                        <td>${item.qty}</td>
+                    </tr>
+                `
+                $("#i_tBody").append(row);
+            });
+            onTblItemRowClick();
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(errorThrown);
+        }
+    });
 }
 
 function onTblItemRowClick() {
@@ -166,6 +215,7 @@ function onTblItemRowClick() {
 }
 
 function setDataToItemTxtFields(code,name,unitPrice,qty){
+    $("#i_collapseOne").collapse("show");
     $("#inputItemCode").val(code);
     $("#inputItemName").val(name);
     $("#inputItemUnitPrice").val(unitPrice);

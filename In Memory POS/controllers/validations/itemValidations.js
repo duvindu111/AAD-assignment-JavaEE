@@ -32,9 +32,9 @@ $("#inputItemCode,#inputItemName,#inputItemUnitPrice,#inputItemQtyOnHand").on("k
                 i_validationArray[indexNo + 1].field.focus();
             }
         } else {
-            if (itemCheckValidations(i_validationArray[indexNo])) {
-                saveItem();
-            }
+            // if (itemCheckValidations(i_validationArray[indexNo])) {
+            //     saveItem();
+            // }
         }
     }
 });
@@ -74,11 +74,14 @@ function setItemBtn() {
     }
 
     let id = $("#inputItemCode").val();
-    if (findItem(id) == undefined) {
-        $("#i_btnDelete").prop("disabled", true);
-    } else {
-        $("#i_btnDelete").prop("disabled", false);
-    }
+    findItem(id, function (itemId) {
+        console.log(itemId);
+        if (itemId == null) {
+            $("#i_btnDelete").prop("disabled", true);
+        } else {
+            $("#i_btnDelete").prop("disabled", false);
+        }
+    });
 }
 
 function itemCheckAll() {

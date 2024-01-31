@@ -6,6 +6,8 @@ import lk.ijse.gdse66.dao.custom.CustomerDAO;
 import lk.ijse.gdse66.dto.CustomerDTO;
 import lk.ijse.gdse66.entity.Customer;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class CustomerBOImpl implements CustomerBO {
@@ -13,13 +15,13 @@ public class CustomerBOImpl implements CustomerBO {
     CustomerDAO customerDAO = DAOFactory.getDAOFactory().getDAO(DAOFactory.DAOTypes.CUSTOMER_DAO);
 
     @Override
-    public int saveCustomer(CustomerDTO dto) {
-        return customerDAO.save(new Customer(dto.getId(), dto.getName(), dto.getAddress(), dto.getContact()));
+    public boolean saveCustomer(Connection connection, CustomerDTO dto) throws SQLException {
+        return customerDAO.save(connection, new Customer(dto.getId(), dto.getName(), dto.getAddress(), dto.getContact()));
     }
 
     @Override
-    public ArrayList<CustomerDTO> getAllCustomers() {
-        ArrayList<Customer> customersList = customerDAO.getAll();
+    public ArrayList<CustomerDTO> getAllCustomers(Connection connection) throws SQLException {
+        ArrayList<Customer> customersList = customerDAO.getAll(connection);
 
         ArrayList<CustomerDTO> customerDTOList = new ArrayList<CustomerDTO>();
 
@@ -37,18 +39,18 @@ public class CustomerBOImpl implements CustomerBO {
     }
 
     @Override
-    public int updateCustomer(CustomerDTO dto) {
-        return customerDAO.update(new Customer(dto.getId(), dto.getName(), dto.getAddress(), dto.getContact()));
+    public boolean updateCustomer(Connection connection, CustomerDTO dto) throws SQLException {
+        return customerDAO.update(connection, new Customer(dto.getId(), dto.getName(), dto.getAddress(), dto.getContact()));
     }
 
     @Override
-    public int removeCustomer(String id) {
-        return customerDAO.delete(id);
+    public boolean removeCustomer(Connection connection, String id) throws SQLException {
+        return customerDAO.delete(connection, id);
     }
 
     @Override
-    public CustomerDTO getCustomerById(String id) {
-        Customer customer = customerDAO.findBy(id);
+    public CustomerDTO getCustomerById(Connection connection, String id) throws SQLException {
+        Customer customer = customerDAO.findBy(connection, id);
 
         return new CustomerDTO(
                 customer.getId(),

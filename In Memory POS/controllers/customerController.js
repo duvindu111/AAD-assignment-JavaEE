@@ -82,12 +82,12 @@ $("#c_btnDelete").click(function () {
     deleteCustomer(id.trim());
 })
 
-//clear btn action
+//clear btn action------------------------------------------------------------------------------------------------------
 $("#c_btnClear").click(function () {
     clearTxtFields();
 })
 
-//search btn action
+//search btn action-----------------------------------------------------------------------------------------------------
 $("#c_btnSearch").click(function () {
     let custId = $("#c_inpSearch").val();
 
@@ -99,7 +99,7 @@ $("#c_btnSearch").click(function () {
             console.log(resp);
 
             if(resp.id == undefined){
-                alert("No customer with the id " + custId);
+                alert("No customer with the id: " + custId);
                 $("#c_inpSearch").val("");
                 return;
             }
@@ -112,61 +112,28 @@ $("#c_btnSearch").click(function () {
     });
 })
 
-// function saveCustomer() {
-//     let custId = $("#c_inputCustId").val();
-//
-//     if(findCustomer(custId.trim()) == undefined ){
-//         let custName = $("#c_inputCustName").val();
-//         let custAddress = $("#c_inputCustAddress").val();
-//         let custContact = $("#c_inputCustContact").val();
-//
-//         let newCustomer = Object.assign({}, customer);
-//
-//         newCustomer.id = custId;
-//         newCustomer.name = custName;
-//         newCustomer.address = custAddress;
-//         newCustomer.contact = custContact;
-//
-//         customerDB.push(newCustomer);
-//     }else{
-//         alert(`customer with the ID: ${custId} already exists.`)
-//     }
-// }
-
-// function updateCustomer(id) {
-//     let customer = findCustomer(id);
-//
-//     if(customer==undefined){
-//         alert(`No customer with the ID: ${id} . Please check the ID again.`);
-//     }else{
-//         let result = confirm("Confirm customer details updating process?");
-//         if(result){
-//             let custName = $("#c_inputCustName").val();
-//             let custAddress = $("#c_inputCustAddress").val();
-//             let custContact = $("#c_inputCustContact").val();
-//
-//             customer.name = custName;
-//             customer.address = custAddress;
-//             customer.contact = custContact;
-//         }
-//     }
-// }
-
 function deleteCustomer(id) {
-    $.ajax({
-        url: "http://localhost:8080/postoee/customer?id="+id,
-        method: "delete",
-        success: function (resp, textStatus, jqXHR){
-            console.log(resp);
+    let customer = findCustomer(id, function (customerId) {
+        console.log(customerId);
+        if (customerId == undefined) {
+           alert("No customer with the id: " + id + " found");
+        } else {
+            $.ajax({
+                url: "http://localhost:8080/postoee/customer?id="+id,
+                method: "delete",
+                success: function (resp, textStatus, jqXHR){
+                    console.log(resp);
 
-            if(jqXHR.status==204){
-                alert("customer deleted successfully");
-                clearTxtFields();
-                getAllCustomers();
-            }
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            alert("Something happened. Customer not removed");
+                    if(jqXHR.status==204){
+                        alert("customer deleted successfully");
+                        clearTxtFields();
+                        getAllCustomers();
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert("Something happened. Customer not removed");
+                }
+            });
         }
     });
 }
@@ -205,7 +172,6 @@ function getAllCustomers() {
                         <td>${customer.contact}</td>
                     </tr>
                 `
-
                 $("#c_tBody").append(row);
             });
             onTblRowClick();

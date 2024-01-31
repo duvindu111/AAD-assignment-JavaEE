@@ -1,16 +1,18 @@
 package lk.ijse.gdse66.dao;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public interface CrudDAO<T> extends SuperDAO {
 
-    public int save(T entity);
+    public boolean save(Connection connection, T entity) throws SQLException;
 
-    public int update(T entity);
+    public boolean update(Connection connection, T entity) throws SQLException;
 
-    public ArrayList<T> getAll();
+    public ArrayList<T> getAll(Connection connection) throws SQLException;
 
-    public int delete(String id);
+    public boolean delete(Connection connection, String id) throws SQLException;
 
-    public T findBy(String id);
+    public T findBy(Connection connection, String id) throws SQLException;
 }
