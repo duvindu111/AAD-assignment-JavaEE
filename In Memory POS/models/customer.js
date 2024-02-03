@@ -1,6 +1,6 @@
-let customer={
-    id:"",
-    name:"",
-    address:"",
-    contact: ""
-}
+// let customer={
+//     id:"",
+//     name:"",
+//     address:"",
+//     contact: ""
+// }
