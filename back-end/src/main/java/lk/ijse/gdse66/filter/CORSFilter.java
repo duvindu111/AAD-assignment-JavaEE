@@ -13,7 +13,6 @@ public class CORSFilter extends HttpFilter {
 
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-        System.out.println("22222222222222");
 
         String origin = req.getHeader("Origin");
         System.out.println(origin);
@@ -26,7 +25,6 @@ public class CORSFilter extends HttpFilter {
         res.setHeader("Access-Control-Allow-Headers", "Content-Type");
         res.setHeader("Access-Control-Allow-Methods", "DELETE, PUT, GET, POST, OPTIONS, HEAD ");
 
-        System.out.println("3333333333333");
         chain.doFilter(req, res);
     }
 }
