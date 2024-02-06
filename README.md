@@ -94,4 +94,4 @@ Once the back-end application is running, users can seamlessly interact with the
 
 ## License
 
-This project is licensed under MIT License. See the [LICENSE.md](https://github.com/duvindu111/AAD-Assignment-JavaEE/blob/main/LICENSE) file for details.
+This project is licensed under MIT License. See the [LICENSE.md](https://github.com/duvindu111/AAD-Assignment-JavaEE/blob/master/LICENSE) file for details.
